@@ -18,6 +18,8 @@ env = gym.make("CartPole-v1", render_mode='human')
 replay_buffer = ReplayBuffer(max_size=100)
 
 # ****************************************************************************************************************
+# *************************************** NEURAL NETWORK *********************************************************
+
 # Create the neural network for the CartPole environment
 model = Sequential([
     Dense(24, activation='relu', input_shape=(4,)),  # input layer with 4 inputs (state vector size is 4)
@@ -32,13 +34,31 @@ model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='mse
 model.summary()
 
 # ****************************************************************************************************************
+# ************************************* EPSILON-GREEDY LOGIC *****************************************************
+
+epsilon_start = 1.0  # starting value for epsilon
+epsilon_end = 0.01   # terminating value for epsilon
+epsilon_decay = 0.001  # decaying value for epsilon
+epsilon = epsilon_start  # current epsilon value
+
+# Decision-making mechanism
+def epsilon_greedy_action(state, q_network, epsilon):
+    if np.random.rand() < epsilon:  # random action (exploration)
+        return env.action_space.sample()
+    else: # best known action (exploitation)
+        q_values = q_network.predict(state[np.newaxis])  # prediction from the neural network 
+        return np.argmax(q_values[0])  # selecting the action with the highest Q-value
+
+# ****************************************************************************************************************
 
 # Reset the environment to its initial state
 state, info = env.reset()
 
 # Run random actions in the environment
 for _ in range(50):  # Run the loop for a maximum of 50 iterations
-    action = env.action_space.sample()  # choose a random action (e.g. move left or right)
+    env.render()  # rendering the game environment
+    time.sleep(0.05)  # adding delay to make the rendering smoother and visible
+    action = epsilon_greedy_action(state, model, epsilon) # choosing the action using the Epsilon-Greedy logic
     next_state, reward, terminated, truncated, info = env.step(action)  # executing the action
 
     # "next_state": The new state after the action
@@ -55,6 +75,10 @@ for _ in range(50):  # Run the loop for a maximum of 50 iterations
     # Save the interaction to the replay buffer
     replay_buffer.add(state, action, reward, next_state, done)
 
+    # Decay the epsilon so the agent explores less over time and relies more to the best known actions
+    if epsilon > epsilon_end:
+        epsilon -= epsilon_decay
+
     # Update the current state
     if done:
         state, info = env.reset()  # Reset the environment if the episode is over
@@ -67,7 +91,7 @@ if replay_buffer.size() >= 1:  # ensuring there's at least one experience in the
     print("Sampled batch:", batch)
 
 # Wait before closing the windown
-time.sleep(5) 
+time.sleep(8) 
 
 # Close the environment
 env.close()
