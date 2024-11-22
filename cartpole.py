@@ -4,7 +4,7 @@ import gymnasium as gym  # OpenAI Gymnasium library
 import numpy as np  # For handling arrays and numerical operations
 import matplotlib.pyplot as plt  # For optional visualization
 import time # For adding delay
-from replay_buffer import ReplayBuffer  # Import the replay buffer
+from Replay_buffer import ReplayBuffer  # Import the replay buffer
 
 # For the neural network
 import tensorflow as tf  # TensorFlow library

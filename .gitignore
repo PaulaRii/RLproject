@@ -1,3 +1,6 @@
-venv/
+cartpole_env
 __pycache__/
 *.pyc
+runs/
+*.log
+.DS_Store
