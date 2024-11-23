@@ -61,11 +61,11 @@ for _ in range(50):  # Run the loop for a maximum of 50 iterations
     action = epsilon_greedy_action(state, model, epsilon) # choosing the action using the Epsilon-Greedy logic
     next_state, reward, terminated, truncated, info = env.step(action)  # executing the action
 
-    # "next_state": The new state after the action
-    # "reward": The reward received for taking the action
-    # "terminated": Indicates whether the episode has ended
-    # "truncated": Indicates whether the episode ended artificially
-    # "info": Diagnostic information, ignored here
+    # "next_state": the new state after the action
+    # "reward": the reward received for taking the action
+    # "terminated": indicates whether the episode has ended
+    # "truncated": indicates whether the episode ended artificially
+    # "info": diagnostic information, ignored here
 
     # Check if the episode is over
     done = terminated or truncated
@@ -74,6 +74,27 @@ for _ in range(50):  # Run the loop for a maximum of 50 iterations
 
     # Save the interaction to the replay buffer
     replay_buffer.add(state, action, reward, next_state, done)
+
+# ***************************** MODEL TRAINING **************************************************
+
+    # Train the model if there are enough samples in the replay buffer
+    if replay_buffer.size() >= 64:  # NEED TO BE SURE THAT there are enough samples for a meaningful batch!
+        batch = replay_buffer.sample(batch_size=64) # could be also 128
+        states, actions, rewards, next_states, dones = batch
+
+        # Predict Q-values for current and next states
+        q_values = model.predict(states)
+        next_q_values = model.predict(next_states)
+
+        # Compute target Q-values
+        target_q_values = q_values.copy()
+        for i in range(len(rewards)):
+            target_q_values[i, actions[i]] = rewards[i] + (1 - dones[i]) * 0.99 * np.max(next_q_values[i])
+        
+        # Train the model
+        model.train_on_batch(states, target_q_values)
+        
+# ****************************************************************************************************
 
     # Decay the epsilon so the agent explores less over time and relies more to the best known actions
     if epsilon > epsilon_end:
