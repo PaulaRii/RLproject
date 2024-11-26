@@ -41,24 +41,22 @@ epsilon_end = 0.01   # terminating value for epsilon
 epsilon_decay = 0.001  # decaying value for epsilon
 epsilon = epsilon_start  # current epsilon value
 
-# Decision-making mechanism
-def epsilon_greedy_action(state, q_network, epsilon):
+# Decision-making mechanism, explorating/exploiting
+def epsilon_greedy_policy(state, q_network, epsilon):
     if np.random.rand() < epsilon:  # random action (exploration)
         return env.action_space.sample()
     else: # best known action (exploitation)
         q_values = q_network.predict(state[np.newaxis])  # prediction from the neural network 
         return np.argmax(q_values[0])  # selecting the action with the highest Q-value
 
-# ****************************************************************************************************************
-
 # Reset the environment to its initial state
 state, info = env.reset()
 
 # Run random actions in the environment
-for _ in range(50):  # Run the loop for a maximum of 50 iterations
+for _ in range(150):  # Run the loop for a maximum of 50 iterations
     env.render()  # rendering the game environment
-    time.sleep(0.05)  # adding delay to make the rendering smoother and visible
-    action = epsilon_greedy_action(state, model, epsilon) # choosing the action using the Epsilon-Greedy logic
+   # time.sleep(0.05)  # adding delay to make the rendering smoother and visible
+    action = epsilon_greedy_policy(state, model, epsilon) # choosing the action using the Epsilon-Greedy logic
     next_state, reward, terminated, truncated, info = env.step(action)  # executing the action
 
     # "next_state": the new state after the action
@@ -83,16 +81,20 @@ for _ in range(50):  # Run the loop for a maximum of 50 iterations
         states, actions, rewards, next_states, dones = batch
 
         # Predict Q-values for current and next states
-        q_values = model.predict(states)
-        next_q_values = model.predict(next_states)
+        q_values = model.predict(states) # action's value based on the current state
+        next_q_values = model.predict(next_states) # estimate of the Q-value for the next state
 
-        # Compute target Q-values
+        # Compute target Q-values (Bellman's equation!)
         target_q_values = q_values.copy()
         for i in range(len(rewards)):
-            target_q_values[i, actions[i]] = rewards[i] + (1 - dones[i]) * 0.99 * np.max(next_q_values[i])
+            # The Bellman's equation for calculating the Q-value
+            target_q_values[i, actions[i]] = rewards[i] + (1 - dones[i]) * 0.99 * np.max(next_q_values[i]) 
+            # dones[i]: preventing for counting the future Q-value estimates if the episode is terminated
+            # 0.99 : gamma-value, the discount factor 
+            # np.max(next_q_values[i]): biggest estimated Q-value for the next state
         
-        # Train the model
-        model.train_on_batch(states, target_q_values)
+        # Train the model by using the result from the seitäBellman's equation
+        model.train_on_batch(states, target_q_values) # the estimated Q-values are used here forn training the model
         
 # ****************************************************************************************************
 
