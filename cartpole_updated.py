@@ -1,3 +1,5 @@
+# This version is optimated so that teaching happens every N step, learningrate is changed to 0.002
+
 # For the environment and for rendering the CartPole game
 import gymnasium as gym  # OpenAI Gymnasium library
 import numpy as np  # For handling arrays and numerical operations

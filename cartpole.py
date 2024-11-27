@@ -1,3 +1,5 @@
+# This version counts the rewards, it's not optimized but this works better than the optimazed version
+
 # For the environment and for rendering the CartPole game
 import gymnasium as gym  # OpenAI Gymnasium library
 import numpy as np  # For handling arrays and numerical operations
