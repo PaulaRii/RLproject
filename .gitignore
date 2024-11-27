@@ -4,3 +4,6 @@ __pycache__/
 runs/
 *.log
 .DS_Store
+cartpole_model*
+cartpole_original.py
+cartpole_copy.py
